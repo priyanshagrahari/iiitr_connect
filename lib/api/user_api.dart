@@ -23,7 +23,7 @@ class UserApiController {
     var token = await findToken;
     if (token != "") {
       var response = await http.post(
-        Uri.parse(ApiConstants().host + ApiConstants().endpoints.verify),
+        Uri.parse(ApiConstants().host + ApiConstants().userEndpoints.verify),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -41,7 +41,7 @@ class UserApiController {
 
   Future<Map<String, dynamic>> sendOtp(String email) async {
     var response = await http.post(
-      Uri.parse(ApiConstants().host + ApiConstants().endpoints.genOtp),
+      Uri.parse(ApiConstants().host + ApiConstants().userEndpoints.genOtp),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -58,7 +58,7 @@ class UserApiController {
 
   Future<Map<String, dynamic>> checkOtp(String email, int otp) async {
     var response = await http.post(
-      Uri.parse(ApiConstants().host + ApiConstants().endpoints.login),
+      Uri.parse(ApiConstants().host + ApiConstants().userEndpoints.login),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

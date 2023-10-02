@@ -1,10 +1,11 @@
 class ApiConstants {
-  final String host = "http://10.0.2.2:5000";
-  final Endpoints endpoints = Endpoints();
+  final String host = "http://localhost:5000";
+  final UserEndpoints userEndpoints = UserEndpoints();
+  final String studentEndpoint = "/students";
 }
 
-class Endpoints {
-  final String genOtp = "/genotp";
-  final String login = "/login";
-  final String verify = "/verify";
+class UserEndpoints {
+  final String genOtp = "/users/genotp";
+  final String login = "/users/login";
+  final String verify = "/users/verify";
 }

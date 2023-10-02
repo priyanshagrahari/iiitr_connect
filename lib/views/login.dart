@@ -1,7 +1,9 @@
 import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:iiitr_connect/api/student_api.dart';
 import 'package:iiitr_connect/api/user_api.dart';
+import 'package:iiitr_connect/views/student_dash.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
 class LoginPage extends StatelessWidget {
@@ -10,7 +12,6 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Theme.of(context).primaryColor,
       body: AnimateGradient(
         primaryColors: [
           Theme.of(context).colorScheme.primary,
@@ -20,45 +21,46 @@ class LoginPage extends StatelessWidget {
           Colors.blue,
           Theme.of(context).colorScheme.primary,
         ],
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Card(
-                  elevation: 15,
-                  color: Theme.of(context).colorScheme.surfaceVariant,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Image.asset(
-                          'images/logoSquareWhite.png',
-                          width: 180,
-                          height: 180,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        Text(
-                          'IIITR Connect',
-                          style: TextStyle(
-                            fontSize: 35,
-                            fontFamily: 'Mooli',
-                            fontWeight: FontWeight.w700,
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Card(
+                    elevation: 15,
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Image.asset(
+                            'images/logoSquareWhite.png',
+                            width: 180,
+                            height: 180,
                             color: Theme.of(context).colorScheme.primary,
                           ),
-                        ),
-                        const Text(
-                          'LOGIN',
-                          style: TextStyle(
-                            fontSize: 15,
+                          Text(
+                            'IIITR Connect',
+                            style: TextStyle(
+                              fontSize: 35,
+                              fontFamily: 'Mooli',
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        FutureBuilder(
+                          const Text(
+                            'LOGIN',
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          FutureBuilder(
                             future: UserApiController().verifyToken(),
                             builder: (BuildContext context, AsyncSnapshot snap) {
                               if (snap.data == null) {
@@ -72,23 +74,21 @@ class LoginPage extends StatelessWidget {
                                   return const LoginForm();
                                 } else if (snap.data['status'] == 200) {
                                   var email = snap.data['email'];
-                                  return Column(
-                                    children: [
-                                      Text('Welcome back, $email'),
-                                      const LogoutButton(),
-                                    ],
-                                  );
+                                  return WelcomeBox(email: email);
                                 } else {
                                   return const Text(
-                                      'Something unexpected has occured, please clear the app data and reopen the app');
+                                    'Something unexpected has occured, please clear the app data and try again :(',
+                                  );
                                 }
                               }
-                            })
-                      ],
+                            },
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           ),
         ),
@@ -97,18 +97,58 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-class LogoutButton extends StatelessWidget {
-  const LogoutButton({super.key});
+class WelcomeBox extends StatelessWidget {
+  final String email;
+
+  const WelcomeBox({
+    super.key,
+    required this.email,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.icon(
-      onPressed: () async {
-        UserApiController().logout();
-        Phoenix.rebirth(context);
+    var rollNum = email.replaceAll('@iiitr.ac.in', '');
+
+    return FutureBuilder(
+      future: StudentApiController().getData(rollNum),
+      builder: (BuildContext context, AsyncSnapshot snap) {
+        if (snap.data == null) {
+          return const CircularProgressIndicator();
+        } else if (snap.data['status'] == 200) {
+          return Column(
+            children: [
+              Text('Welcome, ${snap.data['students'][0]['name']}!'),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StudentDashboard(
+                        rollNum: rollNum,
+                        name: snap.data['students'][0]['name'],
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.login),
+                label: const Text('Contiue'),
+              ),
+              FilledButton.icon(
+                onPressed: () async {
+                  UserApiController().logout();
+                  Phoenix.rebirth(context);
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout'),
+              ),
+            ],
+          );
+        } else {
+          return const Text(
+            'Something unexpected has occured, please clear the app data and try again :(',
+          );
+        }
       },
-      icon: const Icon(Icons.logout),
-      label: const Text('Logout'),
     );
   }
 }
@@ -168,12 +208,7 @@ class LoginFormState extends State<LoginForm> {
         ScaffoldMessenger.of(context);
 
     return (states[2])
-        ? Column(
-            children: [
-              Text('Welcome, $email'),
-              const LogoutButton(),
-            ],
-          )
+        ? WelcomeBox(email: email)
         : Form(
             key: _formKey,
             child: Column(
