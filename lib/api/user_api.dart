@@ -23,7 +23,7 @@ class UserApiController {
     var token = await findToken;
     if (token != "") {
       var response = await http.post(
-        Uri.parse(ApiConstants().host + ApiConstants().userEndpoints.verify),
+        Uri.parse(ApiConstants().verifyUrl),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -32,6 +32,9 @@ class UserApiController {
         }),
       );
       print(response.body);
+      if (response.statusCode == 401) {
+        await logout();
+      }
       var jsonResponse = decode(response);
       return jsonResponse;
     } else {
@@ -40,13 +43,15 @@ class UserApiController {
   }
 
   Future<Map<String, dynamic>> sendOtp(String email) async {
+    print(Uri.parse(ApiConstants().genOtpUrl));
     var response = await http.post(
-      Uri.parse(ApiConstants().host + ApiConstants().userEndpoints.genOtp),
+      Uri.parse(ApiConstants().genOtpUrl),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode(<String, String>{
+      body: jsonEncode(<String, dynamic>{
         'email': email,
+        'otp': 0
       }),
     );
     print(response.body);
@@ -58,7 +63,7 @@ class UserApiController {
 
   Future<Map<String, dynamic>> checkOtp(String email, int otp) async {
     var response = await http.post(
-      Uri.parse(ApiConstants().host + ApiConstants().userEndpoints.login),
+      Uri.parse(ApiConstants().loginUrl),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

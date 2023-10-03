@@ -1,4 +1,3 @@
-import 'package:animate_gradient/animate_gradient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:iiitr_connect/api/student_api.dart';
@@ -12,40 +11,35 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimateGradient(
-        primaryColors: [
-          Theme.of(context).colorScheme.primary,
-          Colors.blueGrey,
-        ],
-        secondaryColors: [
-          Colors.blue,
-          Theme.of(context).colorScheme.primary,
-        ],
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Card(
-                    elevation: 15,
-                    color: Theme.of(context).colorScheme.surfaceVariant,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Card(
+                  elevation: 15,
+                  color: Theme.of(context).colorScheme.background,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width - 80,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 25, 20, 20),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Image.asset(
                             'images/logoSquareWhite.png',
-                            width: 180,
-                            height: 180,
+                            width: 150,
+                            height: 150,
                             color: Theme.of(context).colorScheme.primary,
                           ),
                           Text(
                             'IIITR Connect',
                             style: TextStyle(
-                              fontSize: 35,
+                              fontSize: 30,
                               fontFamily: 'Mooli',
                               fontWeight: FontWeight.w700,
                               color: Theme.of(context).colorScheme.primary,
@@ -66,9 +60,15 @@ class LoginPage extends StatelessWidget {
                               if (snap.data == null) {
                                 return const CircularProgressIndicator();
                               } else {
-                                // scaffoldMessenger.showSnackBar(
-                                //   SnackBar(content: Text(snap.data['message'])),
-                                // );
+                                if (snap.data['status'] != 404) {
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    ScaffoldMessenger.of(context)
+                                      ..hideCurrentSnackBar()
+                                      ..showSnackBar(
+                                        SnackBar(content: Text(snap.data['message'])),
+                                      );
+                                  });
+                                }
                                 if (snap.data['status'] == 404 ||
                                     snap.data['status'] == 401) {
                                   return const LoginForm();
@@ -86,9 +86,9 @@ class LoginPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
           ),
         ),
@@ -256,6 +256,7 @@ class LoginFormState extends State<LoginForm> {
                           bool validationState =
                               _formKey.currentState!.validate();
                           if (validationState && !states[0]) {
+                            scaffoldMessenger.hideCurrentSnackBar();
                             scaffoldMessenger.showSnackBar(
                               SnackBar(
                                   content: Text('Sending OTP to $email...')),
@@ -269,10 +270,12 @@ class LoginFormState extends State<LoginForm> {
                               states[1] = true;
                             });
                             if (response['status'] != 500) {
+                              scaffoldMessenger.hideCurrentSnackBar();
                               scaffoldMessenger.showSnackBar(
                                 SnackBar(content: Text(response['message'])),
                               );
                             } else {
+                              scaffoldMessenger.hideCurrentSnackBar();
                               scaffoldMessenger.showSnackBar(
                                 const SnackBar(
                                     content: Text('Internal server error D:')),
@@ -287,6 +290,7 @@ class LoginFormState extends State<LoginForm> {
                               //
                             }
                           } else if (validationState && states[0]) {
+                            scaffoldMessenger.hideCurrentSnackBar();
                             scaffoldMessenger.showSnackBar(
                               const SnackBar(content: Text('Checking OTP...')),
                             );
@@ -299,10 +303,12 @@ class LoginFormState extends State<LoginForm> {
                               states[1] = true;
                             });
                             if (response['status'] != 500) {
+                              scaffoldMessenger.hideCurrentSnackBar();
                               scaffoldMessenger.showSnackBar(
                                 SnackBar(content: Text(response['message'])),
                               );
                             } else {
+                              scaffoldMessenger.hideCurrentSnackBar();
                               scaffoldMessenger.showSnackBar(
                                 const SnackBar(
                                     content: Text('Internal server error D:')),

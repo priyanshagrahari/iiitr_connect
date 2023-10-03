@@ -37,7 +37,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   loading_indicator: ^3.1.1
   flutter_phoenix: ^1.1.1
-  animate_gradient: ^0.0.2+1
+  camera: ^0.10.5+5
 
 dev_dependencies:
   flutter_test:

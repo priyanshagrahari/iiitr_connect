@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:iiitr_connect/api/user_api.dart';
+import 'package:iiitr_connect/views/add_face_data.dart';
 
 class StudentDashboard extends StatefulWidget {
   final String rollNum;
@@ -17,113 +16,134 @@ class StudentDashboard extends StatefulWidget {
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
+  int currentPageIndex = 1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      appBar: AppBar(
-        title: const Text(
-          'IIITR Connect',
-          style: TextStyle(
-            fontFamily: 'Mooli',
-            fontWeight: FontWeight.w700,
+      bottomNavigationBar: NavigationBar(
+        backgroundColor: Theme.of(context).colorScheme.background,
+        onDestinationSelected: (int index) {
+          setState(() {
+            currentPageIndex = index;
+          });
+        },
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        indicatorColor: Theme.of(context).colorScheme.inversePrimary,
+        selectedIndex: currentPageIndex,
+        destinations: const <Widget>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.school),
+            icon: Icon(Icons.school_outlined),
+            label: 'Courses',
           ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const SizedBox(
-                    height: 55,
-                    width: 55,
-                    child: Icon(Icons.person),
-                  ),
-                  Text(
-                    'STUDENT',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                  Text(
-                    widget.name,
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                  Text(
-                    widget.rollNum,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.book),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text('Courses'),
-                ],
-              ),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-              },
-            ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.forum),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text('Grievances'),
-                ],
-              ),
-              onTap: () {
-                // Update the state of the app.
-                // ...
-              },
-            ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.logout),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text('Log out'),
-                ],
-              ),
-              onTap: () async {
-                UserApiController().logout();
-                Phoenix.rebirth(context);
-              },
-            ),
-          ],
-        ),
+          NavigationDestination(
+            selectedIcon: Icon(Icons.dashboard),
+            icon: Icon(Icons.dashboard_outlined),
+            label: 'Dashboard',
+          ),
+          NavigationDestination(
+            selectedIcon: Icon(Icons.forum),
+            icon: Icon(Icons.forum_outlined),
+            label: 'Forum',
+          ),
+        ],
       ),
       body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: <Widget>[
+            Container(
+              alignment: Alignment.center,
+              child: const Text('Courses Page'),
+            ),
+            Dashboard(widget: widget),
+            Container(
+              alignment: Alignment.center,
+              child: const Text('Forum Page'),
+            ),
+          ][currentPageIndex],
+        ),
+      ),
+    );
+  }
+}
+
+class Dashboard extends StatelessWidget {
+  const Dashboard({
+    super.key,
+    required this.widget,
+  });
+
+  final StudentDashboard widget;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        ListTile(
+          title: Text(
+            'Welcome, ${widget.name}!',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+            ),
+          ),
+        ),
+        const AddFaceDataCard(),
+      ],
+    );
+  }
+}
+
+class AddFaceDataCard extends StatefulWidget {
+  const AddFaceDataCard({
+    super.key,
+  });
+
+  @override
+  State<AddFaceDataCard> createState() => _AddFaceDataCardState();
+}
+
+class _AddFaceDataCardState extends State<AddFaceDataCard> {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Theme.of(context).colorScheme.background,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Text('Welcome, ${widget.name}!'),
+            ListTile(
+              title: Text(
+                'Add face recognition data',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+                ),
+              ),
+              subtitle: const Text(
+                  'Helps in better face recognition for marking attendance.'),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                FilledButton.icon(
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Add data'),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddFaceData(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 10),
+              ],
+            ),
           ],
         ),
       ),

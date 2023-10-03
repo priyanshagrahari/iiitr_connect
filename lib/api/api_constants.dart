@@ -1,11 +1,16 @@
 class ApiConstants {
-  final String host = "http://localhost:5000";
+  final String host = "https://iiitr-connect.vercel.app";
   final UserEndpoints userEndpoints = UserEndpoints();
   final String studentEndpoint = "/students";
+
+  String get genOtpUrl => (host + userEndpoints.prefix + userEndpoints.genOtp);
+  String get loginUrl => (host + userEndpoints.prefix + userEndpoints.login);
+  String get verifyUrl => (host + userEndpoints.prefix + userEndpoints.verify);
 }
 
 class UserEndpoints {
-  final String genOtp = "/users/genotp";
-  final String login = "/users/login";
-  final String verify = "/users/verify";
+  final String prefix = "/users";
+  final String genOtp = "/genotp";
+  final String login = "/login";
+  final String verify = "/verify";
 }

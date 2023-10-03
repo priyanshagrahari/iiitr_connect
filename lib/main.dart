@@ -20,10 +20,22 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'IIITR Connect',
       theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color.fromARGB(255, 43, 45, 127)),
-          fontFamily: 'Lato'),
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          brightness: Brightness.light,
+          seedColor: const Color.fromARGB(255, 43, 45, 127),
+        ),
+        fontFamily: 'Lato',
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          brightness: Brightness.dark,
+          seedColor: const Color.fromARGB(255, 43, 45, 127),
+        ),
+        fontFamily: 'Lato',
+      ),
+      themeMode: ThemeMode.system,
       home: const LoginPage(),
       scaffoldMessengerKey: rootScaffoldMessengerKey,
     );
