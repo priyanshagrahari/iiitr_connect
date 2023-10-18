@@ -17,6 +17,7 @@ class StudentDashboard extends StatefulWidget {
 
 class _StudentDashboardState extends State<StudentDashboard> {
   int currentPageIndex = 1;
+  final controller = PageController(initialPage: 1);
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +26,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
       bottomNavigationBar: NavigationBar(
         backgroundColor: Theme.of(context).colorScheme.background,
         onDestinationSelected: (int index) {
-          setState(() {
-            currentPageIndex = index;
-          });
+          controller.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 555),
+            curve: Curves.easeInOutCubic,
+          );
         },
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         indicatorColor: Theme.of(context).colorScheme.inversePrimary,
@@ -51,9 +54,14 @@ class _StudentDashboardState extends State<StudentDashboard> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: <Widget>[
+        child: PageView(
+          onPageChanged: (value) {
+            setState(() {
+              currentPageIndex = value;
+            });
+          },
+          controller: controller,
+          children: <Widget>[
             Container(
               alignment: Alignment.center,
               child: const Text('Courses Page'),
@@ -63,7 +71,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               alignment: Alignment.center,
               child: const Text('Forum Page'),
             ),
-          ][currentPageIndex],
+          ],
         ),
       ),
     );
@@ -91,22 +99,20 @@ class Dashboard extends StatelessWidget {
             ),
           ),
         ),
-        const AddFaceDataCard(),
+        AddFaceDataCard(rollNum: widget.rollNum),
       ],
     );
   }
 }
 
-class AddFaceDataCard extends StatefulWidget {
+class AddFaceDataCard extends StatelessWidget {
   const AddFaceDataCard({
     super.key,
+    required this.rollNum,
   });
 
-  @override
-  State<AddFaceDataCard> createState() => _AddFaceDataCardState();
-}
+  final String rollNum;
 
-class _AddFaceDataCardState extends State<AddFaceDataCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -136,7 +142,9 @@ class _AddFaceDataCardState extends State<AddFaceDataCard> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AddFaceData(),
+                        builder: (context) => AddFaceData(
+                          rollNum: rollNum,
+                        ),
                       ),
                     );
                   },

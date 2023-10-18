@@ -5,16 +5,17 @@ import 'package:iiitr_connect/api/api_constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UserApiController {
-  Future<String> get findToken async {
+  static Future<String> get findToken async {
     var storage = const FlutterSecureStorage();
     var token = await storage.read(key: "token");
     if (token == null) return "";
     return token;
   }
 
-  Map<String, dynamic> decode(http.Response response) {
-    var jsonResponse =
-        convert.jsonDecode(response.body) as Map<String, dynamic>;
+  static Map<String, dynamic> decode(http.Response response) {
+    var jsonResponse = (response.statusCode != 500)
+        ? convert.jsonDecode(response.body) as Map<String, dynamic>
+        : {"message" : "Internal server error :("};
     jsonResponse['status'] = response.statusCode;
     return jsonResponse;
   }
