@@ -5,6 +5,8 @@ import 'package:iiitr_connect/api/api_constants.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UserApiController {
+  static int userType = 0;
+
   static Future<String> get findToken async {
     var storage = const FlutterSecureStorage();
     var token = await storage.read(key: "token");
@@ -37,6 +39,9 @@ class UserApiController {
         await logout();
       }
       var jsonResponse = decode(response);
+      if (jsonResponse['status'] == 200) {
+        UserApiController.userType = jsonResponse['user_type'];
+      }
       return jsonResponse;
     } else {
       return {'message': 'Please login to continue', 'status': 404};
@@ -79,6 +84,7 @@ class UserApiController {
     jsonResponse['status'] = response.statusCode;
     var storage = const FlutterSecureStorage();
     if (response.statusCode == 200) {
+      UserApiController.userType = jsonResponse['user_type'];
       await storage.write(key: "token", value: jsonResponse['token']);
     } else {
       await storage.write(key: "token", value: null);

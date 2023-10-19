@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:iiitr_connect/api/course_api.dart';
-import 'package:iiitr_connect/views/add_course.dart';
+import 'package:iiitr_connect/views/add_course_button.dart';
 import 'package:iiitr_connect/views/course_view.dart';
 import 'package:intl/intl.dart';
 
@@ -178,9 +178,8 @@ class _CoursesState extends State<Courses> {
                                           MaterialPageRoute(
                                             builder: (context) {
                                               return CourseView(
-                                                profPrefix:
-                                                    widget.dash.emailPrefix,
-                                                courseId: courses[index]['course_id'],
+                                                courseId: courses[index]
+                                                    ['course_id'],
                                                 refreshCourses: onRefresh,
                                               );
                                             },
@@ -271,9 +270,8 @@ class _CoursesState extends State<Courses> {
                                           MaterialPageRoute(
                                             builder: (context) {
                                               return CourseView(
-                                                profPrefix:
-                                                    widget.dash.emailPrefix,
-                                                courseId: courses[index]['course_id'],
+                                                courseId: courses[index]
+                                                    ['course_id'],
                                                 refreshCourses: onRefresh,
                                               );
                                             },

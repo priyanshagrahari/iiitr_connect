@@ -235,13 +235,12 @@ class _AddCourseFormState extends State<AddCourseForm> {
                   },
                 ),
                 ProfsSelect(
-                  currentProfPrefix: widget.profPrefix,
                   updatePrefixes: updatePrefixes,
                   parentProfPrefixes: profPrefixes,
                 ),
                 TextFormField(
                   minLines: 1,
-                  maxLines: 5,
+                  maxLines: 3,
                   decoration: const InputDecoration(
                     labelText: 'Description',
                     suffixIcon: Icon(Icons.abc),
@@ -293,7 +292,9 @@ class _AddCourseFormState extends State<AddCourseForm> {
                               );
                             }
                             if (response['status'] == 400) {
-                              // KEEP EDITING
+                              setState(() {
+                                saving = false;
+                              });
                             }
                           }
                         },
@@ -330,13 +331,11 @@ class _AddCourseFormState extends State<AddCourseForm> {
 class ProfsSelect extends StatefulWidget {
   ProfsSelect({
     super.key,
-    required this.currentProfPrefix,
     required this.updatePrefixes,
     required this.parentProfPrefixes,
     this.useTextField = true,
   });
 
-  final String currentProfPrefix;
   final Function(List<ProfessorModel>) updatePrefixes;
   bool useTextField;
   List<String> parentProfPrefixes;
