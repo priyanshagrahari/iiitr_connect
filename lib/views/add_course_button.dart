@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:iiitr_connect/api/course_api.dart';
 import 'package:iiitr_connect/api/professor_api.dart';
-import 'package:iiitr_connect/views/course_view.dart';
+import 'package:iiitr_connect/views/prof_course_view.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 
-class AddCourseButton extends StatefulWidget {
+class AddCourseButton extends StatelessWidget {
   const AddCourseButton({
     super.key,
     required this.profPrefix,
@@ -16,11 +16,6 @@ class AddCourseButton extends StatefulWidget {
   final String profPrefix;
   final Function reloadCourses;
 
-  @override
-  State<AddCourseButton> createState() => _AddCourseButtonState();
-}
-
-class _AddCourseButtonState extends State<AddCourseButton> {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton.extended(
@@ -33,8 +28,8 @@ class _AddCourseButtonState extends State<AddCourseButton> {
           MaterialPageRoute(
             builder: (context) {
               return AddCourseForm(
-                profPrefix: widget.profPrefix,
-                reloadCourses: widget.reloadCourses,
+                profPrefix: profPrefix,
+                reloadCourses: reloadCourses,
               );
             },
           ),
@@ -275,6 +270,7 @@ class _AddCourseFormState extends State<AddCourseForm> {
                                     accepting_reg: acceptingReg ==
                                         AcceptingRegistrations.yes,
                                     description: description,
+                                    is_running: true,
                                     profs: profPrefixes));
                             if (response['message'] != null) {
                               SchedulerBinding.instance.addPostFrameCallback(
@@ -368,6 +364,7 @@ class _ProfsSelectState extends State<ProfsSelect> {
   }
 
   void processResponse(Map<String, dynamic> data) {
+    if (data['status'] != 200) return;
     var profDataList = data['professors'] as List<dynamic>;
     var localProfsList =
         List<MultiSelectItem<ProfessorModel>>.empty(growable: true);

@@ -22,9 +22,8 @@ class ProfessorModel {
 
 class ProfessorApiController {
   Future<Map<String, dynamic>> getData(String emailPrefix) async {
-    print('${ApiConstants().getProfessorUrl}$emailPrefix');
     var response = await http.get(
-        Uri.parse('${ApiConstants().getProfessorUrl}$emailPrefix'),
+        Uri.parse(ProfessorEndpoints.getProfessorUrl(emailPrefix)),
         headers: {'token': await UserApiController.findToken});
     print(response.body);
     var jsonResponse = UserApiController.decode(response);

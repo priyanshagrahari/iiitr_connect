@@ -1,65 +1,119 @@
 class ApiConstants {
-  final String host = "https://natural-naturally-iguana.ngrok-free.app";
-  final UserEndpoints userEndpoints = UserEndpoints();
-  final String studentEndpoint = "/students";
-  final professorEndpoints = ProfessorEndpoints();
-  final encodingEndpoints = EncodingEndpoints();
-  final courseEndpoints = CourseEndpoints();
-  final lectureEndpoints = LectureEndpoints();
-
-  String get genOtpUrl => (host + userEndpoints.prefix + userEndpoints.genOtp);
-  String get loginUrl => (host + userEndpoints.prefix + userEndpoints.login);
-  String get verifyUrl => (host + userEndpoints.prefix + userEndpoints.verify);
-
-  String get uploadStudentPhotoUrl => (host + encodingEndpoints.prefix + encodingEndpoints.student);
-  String get deleteStudentPhotoUrl => (host + encodingEndpoints.prefix + encodingEndpoints.student);
-
-  String get getProfessorUrl => (host + professorEndpoints.prefix + professorEndpoints.get);
-
-  String get createCourseUrl => (host + courseEndpoints.prefix + courseEndpoints.createOne);
-  String get getCourseUrl => (host + courseEndpoints.prefix + courseEndpoints.getLecture);
-  String get updateCourseUrl => (host + courseEndpoints.prefix + courseEndpoints.updateOne);
-  String get deleteCourseUrl => (host + courseEndpoints.prefix + courseEndpoints.deleteOne);
-  String get getProfessorCoursesUrl => (host + courseEndpoints.prefix + courseEndpoints.getProfsCourses);
-
-  String get createLectureUrl => (host + lectureEndpoints.prefix + lectureEndpoints.createOne);
-  String getLectureUrl(String lectureId) => ('$host${lectureEndpoints.prefix}${lectureEndpoints.getLecture}/$lectureId');
-  String getNCourseLecturesUrl(String courseId, int n) => ('$host${lectureEndpoints.prefix}${lectureEndpoints.getNCourse}/$courseId/$n');
-  String updateLectureUrl(String lectureId) => ('$host${lectureEndpoints.prefix}${lectureEndpoints.update}/$lectureId');
-  String deleteLectureUrl(String lectureId) => ('$host${lectureEndpoints.prefix}${lectureEndpoints.delete}/$lectureId');
+  static const String host = "https://natural-naturally-iguana.ngrok-free.app";
 }
 
 class UserEndpoints {
-  final String prefix = "/users";
-  final String genOtp = "/genotp";
-  final String login = "/login";
-  final String verify = "/verify";
+  static const prefix = "/users";
+  static const genOtp = "/genotp";
+  static const login = "/login";
+  static const verify = "/verify";
+
+  static String get genOtpUrl => (ApiConstants.host + prefix + genOtp);
+  static String get loginUrl => (ApiConstants.host + prefix + login);
+  static String get verifyUrl => (ApiConstants.host + prefix + verify);
 }
 
 class ProfessorEndpoints {
-  final String prefix = "/professors";
-  final String get = "/";
+  static const prefix = "/professors";
+
+  static String getProfessorUrl(String profPrefix) =>
+      ("${ApiConstants.host}$prefix/$profPrefix");
+}
+
+class StudentEndpoints {
+  static const prefix = "/students";
+  static const createOne = "/create";
+  static const getOneOrAll = "/get";
+  static const updateOne = "/update";
+  static const delete = "/delete";
+
+  static String getStudentUrl(String rollNum) =>
+      ("${ApiConstants.host}$prefix$getOneOrAll/$rollNum");
 }
 
 class EncodingEndpoints {
-  final String prefix = "/encodings";
-  final String student = "/student";
+  static const prefix = "/encodings";
+  static const student = "/student";
+  static const lecture = "/lecture";
+
+  static String uploadStudentPhotoUrl(String rollNum) =>
+      ("${ApiConstants.host}$prefix$student/$rollNum");
+  static String deleteAllStudentEncodingsUrl(String rollNum) =>
+      ("${ApiConstants.host}$prefix$student/$rollNum");
+  static String getNumEncodingsUrl(String rollNum) =>
+      ("${ApiConstants.host}$prefix$student/$rollNum");
+  static String uploadClassPhotoUrl(String lectureId) =>
+      ("${ApiConstants.host}$prefix$lecture/$lectureId");
 }
 
 class CourseEndpoints {
-  final String prefix = "/courses";
-  final String getLecture = "/get";
-  final String createOne = "/create";
-  final String updateOne = "/update";
-  final String deleteOne = "/delete";
-  final String getProfsCourses = "/prof";
+  static const prefix = "/courses";
+  static const getOne = "/get";
+  static const createOne = "/create";
+  static const updateOne = "/update";
+  static const deleteOne = "/delete";
+  static const getProfsCourses = "/prof";
+  static const getStudentsCourses = "/stud";
+  static const reg = "/reg";
+  static const numReg = "/numreg";
+
+  static String get createCourseUrl => (ApiConstants.host + prefix + createOne);
+  static String getCourseUrl(String courseId) =>
+      ("${ApiConstants.host}$prefix$getOne/$courseId");
+  static String updateCourseUrl(String courseId) =>
+      ("${ApiConstants.host}$prefix$updateOne/$courseId");
+  static String deleteCourseUrl(String courseId) =>
+      ("${ApiConstants.host}$prefix$deleteOne/$courseId");
+  static String getProfessorCoursesUrl(String profPrefix) =>
+      ("${ApiConstants.host}$prefix$getProfsCourses/$profPrefix");
 }
 
 class LectureEndpoints {
-  final String prefix = "/lectures";
-  final String createOne = "/create";
-  final String getLecture = "/get";
-  final String getNCourse = "/course";
-  final String update = "/update";
-  final String delete = "/delete";
+  static const prefix = "/lectures";
+  static const createOne = "/create";
+  static const getLecture = "/get";
+  static const getNCourse = "/course";
+  static const update = "/update";
+  static const delete = "/delete";
+  static const attend = "/attend";
+  static const present = "/present";
+
+  static String get createLectureUrl =>
+      (ApiConstants.host + prefix + createOne);
+  static String getLectureUrl(String lectureId) =>
+      ('${ApiConstants.host}$prefix$getLecture/$lectureId');
+  static String getNCourseLecturesUrl(String courseId, int n) =>
+      ('${ApiConstants.host}$prefix$getNCourse/$courseId/$n');
+  static String updateLectureUrl(String lectureId) =>
+      ('${ApiConstants.host}$prefix$update/$lectureId');
+  static String deleteLectureUrl(String lectureId) =>
+      ('${ApiConstants.host}$prefix$delete/$lectureId');
+  static String getAttendanceUrl(String lectureId) =>
+      ("${ApiConstants.host}$prefix$attend/$lectureId");
+  static String get markAttendanceUrl => ("${ApiConstants.host}$prefix$attend");
+  static String checkStudPresentUrl(String lectureId, String studentRoll) =>
+      ("${ApiConstants.host}$prefix$present/$lectureId/$studentRoll");
+  static String getStudentCourseAttendanceUrl(
+          String courseId, String studentRoll) =>
+      ("${ApiConstants.host}$prefix$attend/$courseId/$studentRoll");
+}
+
+class RegistrationEndpoints {
+  static const prefix = "/registrations";
+  static const getAvaRegCourses = "/avareg";
+  static const toggleCourseReg = "/reg";
+  static const getStudCourses = "/stud";
+  static const getNumRegStud = "/numreg";
+  static const getCourseStuds = "/cour";
+
+  static String get toggleCourseRegUrl =>
+      (ApiConstants.host + prefix + toggleCourseReg);
+  static String getNumRegStudUrl(String studentRoll) =>
+      ("${ApiConstants.host}$prefix$getNumRegStud/$studentRoll");
+  static String getStudCoursesUrl(String studentRoll) =>
+      ("${ApiConstants.host}$prefix$getStudCourses/$studentRoll");
+  static String getAvailableCourses(String studentRoll) =>
+      ("${ApiConstants.host}$prefix$getAvaRegCourses/$studentRoll");
+  static String getRegisteredStudents(String courseId) =>
+      ("${ApiConstants.host}$prefix$getCourseStuds/$courseId");
 }

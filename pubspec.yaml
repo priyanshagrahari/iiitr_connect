@@ -43,6 +43,9 @@ dependencies:
   intl: ^0.18.1
   multi_select_flutter: ^4.1.3
   collection: ^1.17.2
+  image_picker: ^1.0.4
+  flutter_image_compress: ^1.0.0-nullsafety
+  fl_chart: ^0.64.0
 
 dev_dependencies:
   flutter_test:

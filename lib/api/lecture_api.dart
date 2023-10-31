@@ -10,12 +10,14 @@ class LectureModel {
   String lecture_id;
   String course_id;
   String lecture_date;
+  bool atten_marked;
   String description;
 
   LectureModel({
     required this.lecture_id,
     required this.course_id,
     required this.lecture_date,
+    required this.atten_marked,
     required this.description,
   });
 
@@ -23,6 +25,7 @@ class LectureModel {
       : lecture_id = "",
         course_id = "",
         lecture_date = "",
+        atten_marked = false,
         description = "";
 
   LectureModel.fromMap({
@@ -30,12 +33,14 @@ class LectureModel {
   })  : lecture_id = map['lecture_id'] ?? "",
         course_id = map['course_id'],
         lecture_date = map['lecture_date'],
+        atten_marked = map['atten_marked'],
         description = map['description'];
 
   static Map<String, dynamic> toJson(LectureModel instance) => {
         'lecture_id': instance.lecture_id,
         'course_id': instance.course_id,
         'lecture_date': instance.lecture_date,
+        'atten_marked' : instance.atten_marked,
         'description': instance.description,
       };
 }
@@ -43,7 +48,7 @@ class LectureModel {
 class LectureApiController {
   Future<Map<String, dynamic>> createLecture(LectureModel lecture) async {
     var response = await http.post(
-      Uri.parse(ApiConstants().createLectureUrl),
+      Uri.parse(LectureEndpoints.createLectureUrl),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'token': await UserApiController.findToken,
@@ -57,9 +62,8 @@ class LectureApiController {
 
   Future<Map<String, dynamic>> getNLectures(String courseId, int n) async {
     var response = await http.get(
-      Uri.parse(ApiConstants().getNCourseLecturesUrl(courseId, n)),
+      Uri.parse(LectureEndpoints.getNCourseLecturesUrl(courseId, n)),
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         'token': await UserApiController.findToken,
       },
     );
@@ -70,9 +74,8 @@ class LectureApiController {
 
   Future<Map<String, dynamic>> getLecture(String lectureId) async {
     var response = await http.get(
-      Uri.parse(ApiConstants().getLectureUrl(lectureId)),
+      Uri.parse(LectureEndpoints.getLectureUrl(lectureId)),
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
         'token': await UserApiController.findToken,
       },
     );
@@ -83,7 +86,7 @@ class LectureApiController {
 
   Future<Map<String, dynamic>> updateLecture(String lectureId, LectureModel lecture) async {
     var response = await http.post(
-      Uri.parse(ApiConstants().updateLectureUrl(lectureId)),
+      Uri.parse(LectureEndpoints.updateLectureUrl(lectureId)),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'token': await UserApiController.findToken,
@@ -97,9 +100,61 @@ class LectureApiController {
 
   Future<Map<String, dynamic>> deleteLecture(String lectureId) async {
     var response = await http.delete(
-      Uri.parse(ApiConstants().deleteLectureUrl(lectureId)),
+      Uri.parse(LectureEndpoints.deleteLectureUrl(lectureId)),
+      headers: <String, String>{
+        'token': await UserApiController.findToken,
+      },
+    );
+    var jsonResponse = UserApiController.decode(response);
+    print(jsonResponse);
+    return jsonResponse;
+  }
+
+  Future<Map<String, dynamic>> checkStudPresent(String lectureId, String studentRoll) async {
+    var response = await http.get(
+      Uri.parse(LectureEndpoints.checkStudPresentUrl(lectureId, studentRoll)),
+      headers: <String, String>{
+        'token': await UserApiController.findToken,
+      },
+    );
+    var jsonResponse = UserApiController.decode(response);
+    print(jsonResponse);
+    return jsonResponse;
+  }
+
+  Future<Map<String, dynamic>> getLectureAttendance(String lectureId) async {
+    var response = await http.get(
+      Uri.parse(LectureEndpoints.getAttendanceUrl(lectureId)),
+      headers: <String, String>{
+        'token': await UserApiController.findToken,
+      },
+    );
+    var jsonResponse = UserApiController.decode(response);
+    print(jsonResponse);
+    return jsonResponse;
+  }
+
+  Future<Map<String, dynamic>> markLectureAttendance(String lectureId, List<String> regIds) async {
+    var response = await http.post(
+      Uri.parse(LectureEndpoints.markAttendanceUrl),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
+        'token': await UserApiController.findToken,
+      },
+      body: jsonEncode(<String, dynamic>{
+        'lecture_id' : lectureId,
+        'registration_ids' : regIds,
+      })
+    );
+    var jsonResponse = UserApiController.decode(response);
+    print(jsonResponse);
+    return jsonResponse;
+  }
+
+  Future<Map<String, dynamic>> getStudentCourseAttendance(String courseId, String studentRoll) async {
+    var response = await http.get(
+      Uri.parse(LectureEndpoints.getStudentCourseAttendanceUrl(courseId, studentRoll)),
+      headers: <String, String>{
         'token': await UserApiController.findToken,
       },
     );

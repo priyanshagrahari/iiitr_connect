@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:iiitr_connect/api/face_encodings_api.dart';
 import 'package:iiitr_connect/views/add_face_data.dart';
+import 'package:iiitr_connect/views/courses_page.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 
 class StudentDashboard extends StatefulWidget {
   final String rollNum;
@@ -62,9 +65,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
           },
           controller: controller,
           children: <Widget>[
-            Container(
-              alignment: Alignment.center,
-              child: const Text('Courses Page'),
+            CoursesPage(
+              studRollNum: widget.rollNum,
             ),
             Dashboard(widget: widget),
             Container(
@@ -88,30 +90,129 @@ class Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return Column(
       children: [
-        ListTile(
-          title: Text(
-            'Welcome, ${widget.name}!',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ListTile(
+            leading: const Icon(
+              Icons.account_circle,
+              size: 70,
             ),
+            title: Text(
+              'Welcome, ${widget.name}!',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+              ),
+            ),
+            subtitle: const Text('Have a nice day!'),
           ),
         ),
-        AddFaceDataCard(rollNum: widget.rollNum),
+        Expanded(
+          child: ListView(
+            children: [
+              AddFaceDataCard(rollNum: widget.rollNum),
+            ],
+          ),
+        ),
       ],
     );
   }
 }
 
-class AddFaceDataCard extends StatelessWidget {
+class AddFaceDataCard extends StatefulWidget {
   const AddFaceDataCard({
     super.key,
     required this.rollNum,
   });
 
   final String rollNum;
+
+  @override
+  State<AddFaceDataCard> createState() => _AddFaceDataCardState();
+}
+
+class _AddFaceDataCardState extends State<AddFaceDataCard> {
+  late Future numEncodingsFuture;
+  int numEncodings = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    initFuture();
+  }
+
+  void initFuture() {
+    numEncodingsFuture =
+        FaceEncodingsApiController().getNumEncodings(widget.rollNum);
+    numEncodingsFuture.then(
+      (value) {
+        if (value['status'] == 200 && value['count'] < 3) {
+          showBlockingDialog();
+        }
+        if (!mounted) return;
+        setState(() {
+          numEncodings = (value['status'] == 200) ? value['count'] : 0;
+        });
+      },
+    );
+  }
+
+  void showBlockingDialog() async {
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return WillPopScope(
+          onWillPop: () async {
+            return false;
+          },
+          child: Dialog(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const ListTile(
+                    title: Text(
+                        'Please add face recognition data before continuing. '
+                        'There must be at least 3 valid encodings.'),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            Navigator.of(context)
+                              ..pop()
+                              ..push(
+                                MaterialPageRoute(
+                                  builder: (context) => AddFaceData(
+                                    rollNum: widget.rollNum,
+                                    willPop: () {
+                                      initFuture();
+                                    },
+                                  ),
+                                ),
+                              );
+                          },
+                          icon: const Icon(Icons.camera_alt),
+                          label: const Text('Add data'),
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,8 +230,34 @@ class AddFaceDataCard extends StatelessWidget {
                   fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
                 ),
               ),
-              subtitle: const Text(
-                  'Helps in better face recognition for marking attendance.'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                      'Helps in better face recognition for marking attendance.'),
+                  FutureBuilder(
+                    future: numEncodingsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        return Text(
+                            "Number of valid encodings: $numEncodings",
+                            textAlign: TextAlign.start,);
+                      } else {
+                        return SizedBox(
+                          height: Theme.of(context).buttonTheme.height - 15,
+                          width: Theme.of(context).buttonTheme.height - 15,
+                          child: LoadingIndicator(
+                            indicatorType: Indicator.lineScale,
+                            colors: [Theme.of(context).colorScheme.primary],
+                            strokeWidth: 4.0,
+                            pathBackgroundColor: Colors.black45,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -143,13 +270,15 @@ class AddFaceDataCard extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => AddFaceData(
-                          rollNum: rollNum,
+                          rollNum: widget.rollNum,
+                          willPop: () {
+                            initFuture();
+                          },
                         ),
                       ),
                     );
                   },
                 ),
-                const SizedBox(width: 10),
               ],
             ),
           ],

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:iiitr_connect/api/lecture_api.dart';
-import 'package:iiitr_connect/views/course_view.dart';
+import 'package:iiitr_connect/views/mark_attendance.dart';
+import 'package:iiitr_connect/views/prof_course_view.dart';
+import 'package:intl/intl.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
 class AddLectureForm extends StatefulWidget {
@@ -27,6 +29,7 @@ class _AddLectureFormState extends State<AddLectureForm> {
   final lectureDateController = TextEditingController();
 
   var saving = false;
+  var mark = false;
 
   @override
   void dispose() {
@@ -34,11 +37,40 @@ class _AddLectureFormState extends State<AddLectureForm> {
     super.dispose();
   }
 
+  Future<LectureModel> saveForm() async {
+    var obj = LectureModel(
+      lecture_id: "",
+      course_id: widget.courseId,
+      lecture_date: lectureDate,
+      atten_marked: false,
+      description: description,
+    );
+    var response = await LectureApiController().createLecture(obj);
+    if (response['message'] != null) {
+      SchedulerBinding.instance.addPostFrameCallback(
+        (timeStamp) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(response['message'] as String)));
+          if (response['status'] == 201 || response['status'] == 200) {
+            obj.lecture_id = response['lecture_id'];
+            widget.reloadLectures();
+          }
+        },
+      );
+    }
+    if (response['status'] == 400) {
+      setState(() {
+        saving = false;
+        mark = false;
+      });
+    }
+    await Future.delayed(const Duration(milliseconds: 500));
+    return obj;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ScaffoldMessengerState scaffoldMessenger =
-        ScaffoldMessenger.of(context);
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Lecture'),
@@ -100,65 +132,108 @@ class _AddLectureFormState extends State<AddLectureForm> {
                 },
               ),
               const SizedBox(height: 10),
-              FilledButton(
-                onPressed: (saving)
-                    ? null
-                    : () async {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          _formKey.currentState!.deactivate();
-                          setState(() {
-                            saving = true;
-                          });
-                          var response = await LectureApiController()
-                              .createLecture(LectureModel(
-                                  lecture_id: "",
-                                  course_id: widget.courseId,
-                                  lecture_date: lectureDate,
-                                  description: description));
-                          if (response['message'] != null) {
-                              SchedulerBinding.instance.addPostFrameCallback(
-                                (timeStamp) {
-                                  scaffoldMessenger.hideCurrentSnackBar();
-                                  scaffoldMessenger.showSnackBar(SnackBar(
-                                      content:
-                                          Text(response['message'] as String)));
-                                  if (response['status'] == 201 ||
-                                      response['status'] == 200) {
-                                    widget.reloadLectures();
-                                    Future.delayed(const Duration(milliseconds: 500)).then((value) {
-                                      Navigator.pop(context);
-                                    });
-                                  }
-                                },
-                              );
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FilledButton(
+                    onPressed: (saving || mark)
+                        ? null
+                        : () async {
+                            setState(() {
+                              saving = true;
+                            });
+                            if (_formKey.currentState!.validate()) {
+                              var lecture = await saveForm();
+                              if (lecture.lecture_id.isNotEmpty) {
+                                Future.delayed(
+                                        const Duration(milliseconds: 500))
+                                    .then((value) {
+                                  Navigator.pop(context);
+                                });
+                              } else {
+                                setState(() {
+                                  saving = false;
+                                });
+                              }
                             }
-                            if (response['status'] == 400) {
+                          },
+                    child: (saving)
+                        ? SizedBox(
+                            height: Theme.of(context).buttonTheme.height - 15,
+                            width: Theme.of(context).buttonTheme.height - 15,
+                            child: LoadingIndicator(
+                              indicatorType: Indicator.lineScale,
+                              colors: [Theme.of(context).colorScheme.primary],
+                              strokeWidth: 4.0,
+                              pathBackgroundColor: Colors.black45,
+                            ),
+                          )
+                        : const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.post_add),
+                              SizedBox(width: 10),
+                              Text('Save'),
+                            ],
+                          ),
+                  ),
+                  const SizedBox(width: 10),
+                  FilledButton(
+                    onPressed: (saving || mark)
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
                               setState(() {
-                                saving = false;
+                                mark = true;
+                              });
+                              var lecture = await saveForm();
+                              if (lecture.lecture_id.isEmpty) {
+                                setState(() {
+                                  mark = false;
+                                });
+                              }
+                              var dateObj = DateFormat('yyyy-MM-dd')
+                                  .parse(lecture.lecture_date);
+                              var format = DateFormat('EEEE, dd MMM yyyy');
+                              Future.delayed(const Duration(milliseconds: 500))
+                                  .then((value) {
+                                Navigator.of(context)
+                                  ..pop()
+                                  ..push(
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return MarkAttendance(
+                                          lecture: lecture,
+                                          dateString: format.format(dateObj),
+                                          onSaved: widget.reloadLectures,
+                                        );
+                                      },
+                                    ),
+                                  );
                               });
                             }
-                        }
-                      },
-                child: (saving)
-                    ? SizedBox(
-                        height: Theme.of(context).buttonTheme.height - 15,
-                        width: Theme.of(context).buttonTheme.height - 15,
-                        child: LoadingIndicator(
-                          indicatorType: Indicator.lineScale,
-                          colors: [Theme.of(context).colorScheme.primary],
-                          strokeWidth: 4.0,
-                          pathBackgroundColor: Colors.black45,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.post_add),
-                          SizedBox(width: 10),
-                          Text('Submit'),
-                        ],
-                      ),
+                          },
+                    child: (mark)
+                        ? SizedBox(
+                            height: Theme.of(context).buttonTheme.height - 15,
+                            width: Theme.of(context).buttonTheme.height - 15,
+                            child: LoadingIndicator(
+                              indicatorType: Indicator.lineScale,
+                              colors: [Theme.of(context).colorScheme.primary],
+                              strokeWidth: 4.0,
+                              pathBackgroundColor: Colors.black45,
+                            ),
+                          )
+                        : const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.bar_chart),
+                              SizedBox(width: 10),
+                              Text('Save & Mark'),
+                            ],
+                          ),
+                  ),
+                ],
               )
             ],
           ),

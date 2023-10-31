@@ -155,7 +155,7 @@ class _StudentWelcomeState extends State<StudentWelcome> {
 
   @override
   void initState() {
-    studentFuture = StudentApiController().getData(widget.rollNum);
+    studentFuture = StudentApiController().getStudent(widget.rollNum);
     super.initState();
   }
 

@@ -6,11 +6,13 @@ import 'package:iiitr_connect/api/lecture_api.dart';
 import 'package:iiitr_connect/views/add_course_button.dart';
 import 'package:iiitr_connect/views/add_lecture_form.dart';
 import 'package:iiitr_connect/views/all_lectures.dart';
+import 'package:iiitr_connect/views/course_students_view.dart';
+import 'package:iiitr_connect/views/mark_attendance.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
-class CourseView extends StatefulWidget {
-  const CourseView({
+class ProfCourseView extends StatefulWidget {
+  const ProfCourseView({
     super.key,
     required this.courseId,
     required this.refreshCourses,
@@ -20,14 +22,16 @@ class CourseView extends StatefulWidget {
   final Function refreshCourses;
 
   @override
-  State<CourseView> createState() => _CourseViewState();
+  State<ProfCourseView> createState() => _ProfCourseViewState();
 }
 
-class _CourseViewState extends State<CourseView> {
+class _ProfCourseViewState extends State<ProfCourseView> {
   late Future courseFuture;
-  late Future last5LecturesFuture;
   CourseModel course = CourseModel.empty();
-  List<LectureModel> last5Lectures = [];
+
+  int recentWindowSize = 5;
+  late Future recentLecturesFuture;
+  List<LectureModel> recentLectures = [];
 
   @override
   void initState() {
@@ -40,26 +44,32 @@ class _CourseViewState extends State<CourseView> {
     if (what == 0 || what == 1) {
       courseFuture = CourseApiController().getCourse(courseId: widget.courseId);
       courseFuture.then((value) {
-        if (mounted) {
+        if (!mounted) return;
+        if (value['status'] == 200) {
           setState(() {
             course = CourseModel.fromMap(map: value['courses'][0]);
+          });
+        } else {
+          setState(() {
+            course = CourseModel.empty();
           });
         }
       });
     }
     if (what == 0 || what == 2) {
-      last5LecturesFuture =
-          LectureApiController().getNLectures(widget.courseId, 5);
-      last5LecturesFuture.then((value) {
-        if (mounted && value['lectures'] != null) {
+      recentLecturesFuture = LectureApiController()
+          .getNLectures(widget.courseId, recentWindowSize);
+      recentLecturesFuture.then((value) {
+        if (!mounted) return;
+        if (value['lectures'] != null) {
           setState(() {
-            last5Lectures = (value['lectures'] as List<dynamic>)
+            recentLectures = (value['lectures'] as List<dynamic>)
                 .map((e) => LectureModel.fromMap(map: e))
                 .toList();
           });
         } else {
           setState(() {
-            last5Lectures = [];
+            recentLectures = [];
           });
         }
       });
@@ -69,190 +79,210 @@ class _CourseViewState extends State<CourseView> {
   @override
   void dispose() {
     courseFuture.ignore();
-    last5LecturesFuture.ignore();
+    recentLecturesFuture.ignore();
     super.dispose();
   }
 
   Future onRefresh() async {
-    initFutures(what: 1);
+    initFutures();
     widget.refreshCourses();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        appBar: AppBar(
-          title: FutureBuilder(
-            future: courseFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return SizedBox(
-                  height: Theme.of(context).buttonTheme.height - 15,
-                  width: Theme.of(context).buttonTheme.height - 15,
-                  child: LoadingIndicator(
-                    indicatorType: Indicator.lineScale,
-                    colors: [Theme.of(context).colorScheme.primary],
-                    strokeWidth: 4.0,
-                    pathBackgroundColor: Colors.black45,
-                  ),
-                );
-              } else {
-                return Text(snapshot.data['courses'][0]['name']);
-              }
-            },
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (ctx) {
-                    return CourseDeleteDialog(
-                      courseId: widget.courseId,
-                      popUntil: "/profDash",
-                      onDelete: widget.refreshCourses,
-                    );
-                  },
-                );
-              },
-              icon: const Icon(Icons.delete_forever),
-            ),
-          ],
-        ),
-        body: FutureBuilder(
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      appBar: AppBar(
+        title: FutureBuilder(
           future: courseFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
-            } else {
-              return RefreshIndicator(
-                onRefresh: onRefresh,
-                child: ListView(
-                  children: [
-                    EditCourseCard(
-                      course: course,
-                      onRefresh: () => initFutures(what: 1),
-                      refreshCourses: widget.refreshCourses,
-                    ),
-                    Column(
-                      children: [
-                        SizedBox(
-                          height: 70,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ExpandedCardButton(
-                                iconData: Icons.post_add_outlined,
-                                label: "Add Lecture",
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return AddLectureForm(
-                                          courseId: widget.courseId,
-                                          reloadLectures: () =>
-                                              initFutures(what: 2),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              ExpandedCardButton(
-                                iconData: Icons.insert_chart_outlined_outlined,
-                                label: "All Lectures",
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return AllLectures(
-                                          courseId: widget.courseId,
-                                          onDeleteOrUpdate: () =>
-                                              initFutures(what: 2),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 70,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              ExpandedCardButton(
-                                iconData: Icons.people,
-                                label: "Students",
-                                onTap: () {},
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    FutureBuilder(
-                      future: last5LecturesFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          if (snapshot.data['status'] == 200) {
-                            var listTiles = last5Lectures.map(
-                              (e) {
-                                return LectureCard(
-                                  lectureId: e.lecture_id,
-                                  onUpdate: () {},
-                                  onDelete: () => initFutures(what: 2),
-                                );
-                              },
-                            ).toList();
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Recent Lectures:',
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                ),
-                                ...listTiles
-                              ],
-                            );
-                          }
-                          return const SizedBox(
-                            // height: 100,
-                            // child: Center(
-                            //   child: Text("No lectures found"),
-                            // ),
-                          );
-                        }
-                        return const SizedBox(
-                          height: 50,
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      },
-                    )
-                  ],
+              return SizedBox(
+                height: Theme.of(context).buttonTheme.height - 15,
+                width: Theme.of(context).buttonTheme.height - 15,
+                child: LoadingIndicator(
+                  indicatorType: Indicator.lineScale,
+                  colors: [Theme.of(context).colorScheme.primary],
+                  strokeWidth: 4.0,
+                  pathBackgroundColor: Colors.black45,
                 ),
               );
+            } else {
+              return Text(snapshot.data['courses'][0]['name']);
             }
           },
-        ));
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                barrierColor: const Color.fromARGB(230, 0, 0, 0),
+                builder: (ctx) {
+                  return CourseDeleteDialog(
+                    courseId: widget.courseId,
+                    onDelete: widget.refreshCourses,
+                  );
+                },
+              );
+            },
+            icon: const Icon(Icons.delete_forever),
+          ),
+        ],
+      ),
+      body: FutureBuilder(
+        future: courseFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
+            return RefreshIndicator(
+              onRefresh: onRefresh,
+              child: ListView(
+                children: [
+                  EditCourseCard(
+                    course: course,
+                    onRefresh: () => initFutures(what: 1),
+                    refreshCourses: widget.refreshCourses,
+                  ),
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: 70,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ExpandedCardButton(
+                              iconData: Icons.post_add_outlined,
+                              labelString: "Add Lecture",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return AddLectureForm(
+                                        courseId: widget.courseId,
+                                        reloadLectures: () =>
+                                            initFutures(what: 2),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ExpandedCardButton(
+                              iconData: Icons.library_books_outlined,
+                              labelString: "All Lectures",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return AllLectures(
+                                        courseId: widget.courseId,
+                                        onDeleteOrUpdate: () =>
+                                            initFutures(what: 2),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 70,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ExpandedCardButton(
+                              iconData: Icons.show_chart,
+                              labelString: "View Attendance",
+                              onTap: () {},
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 70,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ExpandedCardButton(
+                              iconData: Icons.people,
+                              labelString: "Students",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return CourseStudentsView(
+                                        courseId: widget.courseId,
+                                        courseName: course.name,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  FutureBuilder(
+                    future: recentLecturesFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (snapshot.data['status'] == 200) {
+                          var listTiles = recentLectures.map(
+                            (e) {
+                              return ProfLectureCard(
+                                lectureId: e.lecture_id,
+                                onUpdate: () => initFutures(what: 2),
+                                onDelete: () => initFutures(what: 2),
+                              );
+                            },
+                          ).toList();
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Recent Lectures:',
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ),
+                              ...listTiles
+                            ],
+                          );
+                        }
+                        return const SizedBox();
+                      }
+                      return const SizedBox(
+                        height: 50,
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    },
+                  )
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 }
 
-class LectureCard extends StatefulWidget {
-  const LectureCard({
+class ProfLectureCard extends StatefulWidget {
+  const ProfLectureCard({
     super.key,
     required this.lectureId,
     required this.onUpdate,
@@ -264,10 +294,10 @@ class LectureCard extends StatefulWidget {
   final Function onDelete;
 
   @override
-  State<LectureCard> createState() => _LectureCardState();
+  State<ProfLectureCard> createState() => _ProfLectureCardState();
 }
 
-class _LectureCardState extends State<LectureCard>
+class _ProfLectureCardState extends State<ProfLectureCard>
     with TickerProviderStateMixin {
   late Future lectureFuture;
   LectureModel lecture = LectureModel.empty();
@@ -403,6 +433,7 @@ class _LectureCardState extends State<LectureCard>
                                     context: context,
                                     fieldName: "Description",
                                     fieldInitValue: lecture.description,
+                                    fieldMaxLines: 5,
                                     onSubmit: (value) {
                                       // SAVE
                                       lecture.description = value;
@@ -412,13 +443,7 @@ class _LectureCardState extends State<LectureCard>
                                       lectureFuture.then((value) {
                                         if (mounted && value['status'] == 200) {
                                           setState(() {
-                                            lecture = LectureModel(
-                                              lecture_id: lecture.lecture_id,
-                                              course_id: value['course_id'],
-                                              lecture_date:
-                                                  value['lecture_date'],
-                                              description: value['description'],
-                                            );
+                                            lecture = LectureModel.fromMap(map: value);
                                           });
                                           widget.onUpdate();
                                           SchedulerBinding.instance
@@ -444,10 +469,10 @@ class _LectureCardState extends State<LectureCard>
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               TextButton(
-                                // ATTENDANCE BUTTON
+                                // MARK ATTENDANCE BUTTON
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.add_chart),
+                                    const Icon(Icons.bar_chart),
                                     SizeTransition(
                                       sizeFactor: _animation,
                                       axis: Axis.horizontal,
@@ -455,13 +480,27 @@ class _LectureCardState extends State<LectureCard>
                                       child: const Row(
                                         children: [
                                           SizedBox(width: 10),
-                                          Text("Mark Attendance"),
+                                          Text("Attendance"),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return MarkAttendance(
+                                          lecture: lecture,
+                                          dateString: formattedDateString(
+                                              lecture.lecture_date),
+                                              onSaved: widget.onUpdate,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
                               ),
                               SizeTransition(
                                 sizeFactor: ReverseAnimation(_deleteAnimation),
@@ -519,6 +558,7 @@ class _LectureCardState extends State<LectureCard>
                                   children: [
                                     const Text('Are you sure? '),
                                     IconButton(
+                                      // CONFIRM DELETE
                                       onPressed: () async {
                                         _deleteController.reverse();
                                         setState(() {
@@ -528,8 +568,29 @@ class _LectureCardState extends State<LectureCard>
                                             await LectureApiController()
                                                 .deleteLecture(
                                                     lecture.lecture_id);
-                                        if (response['status'] == 200) {
+                                        if (response['message'] != null) {
+                                          SchedulerBinding.instance
+                                              .addPostFrameCallback(
+                                            (_) {
+                                              scaffoldMessenger
+                                                  .hideCurrentSnackBar();
+                                              scaffoldMessenger.showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                      response['message']
+                                                          as String),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
+                                        if (mounted &&
+                                            response['status'] == 200) {
                                           widget.onDelete();
+                                        } else {
+                                          setState(() {
+                                            deleting = false;
+                                          });
                                         }
                                       },
                                       color: Colors.red,
@@ -576,12 +637,12 @@ class ExpandedCardButton extends StatelessWidget {
   const ExpandedCardButton({
     super.key,
     required this.iconData,
-    required this.label,
+    required this.labelString,
     required this.onTap,
   });
 
   final IconData iconData;
-  final String label;
+  final String labelString;
   final Function onTap;
 
   @override
@@ -606,10 +667,11 @@ class ExpandedCardButton extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  label,
+                  labelString,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w600,
+                    fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
                   ),
                 ),
               ],
@@ -661,8 +723,11 @@ class EditCourseCard extends StatefulWidget {
                   initialValue: fieldInitValue,
                   autofocus: true,
                   onEditingComplete: () {
+                    fieldKey.currentState!.save();
+                  },
+                  onSaved: (value) {
                     if (fieldKey.currentState!.validate()) {
-                      onSubmit(fieldKey.currentState!.value.toString().trim());
+                      onSubmit(value.toString().trim());
                       Navigator.pop(context);
                     }
                   },
@@ -673,6 +738,12 @@ class EditCourseCard extends StatefulWidget {
                       return "Please enter a ${fieldName.toLowerCase()}";
                     }
                   },
+                ),
+                TextButton(
+                  onPressed: () {
+                    fieldKey.currentState!.save();
+                  },
+                  child: const Text('Submit'),
                 ),
               ],
             ),
@@ -870,8 +941,7 @@ class _EditCourseCardState extends State<EditCourseCard>
                         sizeFactor: ReverseAnimation(_animation),
                         axis: Axis.horizontal,
                         axisAlignment: -1,
-                        child:
-                            Text("Course Code: ${widget.course.course_code}"),
+                        child: Text("Code: ${widget.course.course_code}"),
                       ),
                       SizeTransition(
                         sizeFactor: _animation,
@@ -1180,12 +1250,10 @@ class CourseDeleteDialog extends StatefulWidget {
   const CourseDeleteDialog({
     super.key,
     required this.courseId,
-    required this.popUntil,
     required this.onDelete,
   });
 
   final String courseId;
-  final String popUntil;
   final Function onDelete;
 
   @override
@@ -1214,6 +1282,8 @@ class _CourseDeleteDialogState extends State<CourseDeleteDialog> {
         ScaffoldMessenger.of(context);
 
     return Dialog(
+      backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+      elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1221,7 +1291,9 @@ class _CourseDeleteDialogState extends State<CourseDeleteDialog> {
           children: [
             Text(
               'Are you sure you want to delete this course permanently?',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize),
             ),
             const SizedBox(height: 10),
             Row(
@@ -1253,12 +1325,9 @@ class _CourseDeleteDialogState extends State<CourseDeleteDialog> {
                                           Text(value['message'] as String)));
                                   if (value['status'] == 200) {
                                     widget.onDelete();
-                                    if (widget.popUntil.isNotEmpty) {
-                                      Navigator.of(context).popUntil(
-                                          ModalRoute.withName("/profDash"));
-                                    } else {
-                                      Navigator.of(context).pop();
-                                    }
+                                    Navigator.of(context)
+                                      ..pop()
+                                      ..pop();
                                   }
                                 });
                               }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iiitr_connect/api/lecture_api.dart';
 import 'package:iiitr_connect/views/add_lecture_form.dart';
-import 'package:iiitr_connect/views/course_view.dart';
+import 'package:iiitr_connect/views/prof_course_view.dart';
 
 class AllLectures extends StatefulWidget {
   const AllLectures({
@@ -84,7 +84,7 @@ class _AllLecturesState extends State<AllLectures> {
                 child: ListView.builder(
                   itemCount: allLectureModels.length,
                   itemBuilder: (context, index) {
-                    return LectureCard(
+                    return ProfLectureCard(
                       lectureId: allLectureModels[index].lecture_id,
                       onUpdate: () => widget.onDeleteOrUpdate(),
                       onDelete: () {
