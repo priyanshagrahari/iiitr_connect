@@ -20,7 +20,7 @@ Once you enter the 4 digit OTP, it will automatically try to log in. You should 
 Click on `Continue` to proceed onto the app.
 
 ## Submitting Face Data
-When you first log in, you should see a dialog box like this:
+When you first log in, you should see a dialog box like this:  
 <img src="./images/student_quickstart/05.webp" width="300">  
 Click on `Add data` to proceed.  
 On the next screen, you will be prompted to give Camera access to the app. Choose the option equivalent to `While using the app` and proceed:  
