@@ -2,7 +2,7 @@
 
 ## Installing the app
 
-Kindly use this [link](https://github.com/priyanshagrahari/iiitr_connect/releases/download/testing/build_release_20231103.apk) to download the apk file to your phone. Once downloaded, install it (you may need to change some settings to do so) and proceed to the next steps. If you get a warning from google you can safely ignore it, and continue installing the app. The warning may appear because the app has not been 
+Kindly use this [link](https://github.com/priyanshagrahari/iiitr_connect/releases/download/testing/build_release_20231103.apk) to download the apk file to your phone. Once downloaded, install it (you may need to change some settings to do so) and proceed to the next steps. If you get a warning from google you can safely ignore it, and continue installing the app. The warning may appear because the app has not been published onto the Play store yet.
 
 ## Logging in
 When you first open the app after installation, you should see the following screen:  
