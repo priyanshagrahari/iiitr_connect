@@ -6,6 +6,7 @@ import 'package:iiitr_connect/api/lecture_api.dart';
 import 'package:iiitr_connect/views/add_course_button.dart';
 import 'package:iiitr_connect/views/add_lecture_form.dart';
 import 'package:iiitr_connect/views/all_lectures.dart';
+import 'package:iiitr_connect/views/course_attendance_view.dart';
 import 'package:iiitr_connect/views/course_students_view.dart';
 import 'package:iiitr_connect/views/mark_attendance.dart';
 import 'package:intl/intl.dart';
@@ -201,7 +202,18 @@ class _ProfCourseViewState extends State<ProfCourseView> {
                             ExpandedCardButton(
                               iconData: Icons.show_chart,
                               labelString: "View Attendance",
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return CourseAttendanceView(
+                                        course: course
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),

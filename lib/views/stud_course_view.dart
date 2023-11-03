@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:iiitr_connect/api/attendance_api.dart';
 import 'package:iiitr_connect/api/course_api.dart';
 import 'package:iiitr_connect/api/lecture_api.dart';
 import 'package:iiitr_connect/api/professor_api.dart';
@@ -287,7 +288,7 @@ class _StudentAttendancePieChartDialogState
   @override
   void initState() {
     super.initState();
-    attendanceDataFuture = LectureApiController()
+    attendanceDataFuture = AttendanceApiController()
         .getStudentCourseAttendance(widget.courseId, widget.rollNum);
     attendanceDataFuture.then((value) {
       if (value['status'] == 200) {
@@ -449,7 +450,7 @@ class _StudLectureCardState extends State<StudLectureCard>
   @override
   void initState() {
     super.initState();
-    studentPresentFuture = LectureApiController()
+    studentPresentFuture = AttendanceApiController()
         .checkStudPresent(widget.lecture.lecture_id, widget.studentRoll);
     studentPresentFuture.then((value) {
       if (!mounted) return;

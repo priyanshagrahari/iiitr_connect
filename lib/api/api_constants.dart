@@ -75,8 +75,6 @@ class LectureEndpoints {
   static const getNCourse = "/course";
   static const update = "/update";
   static const delete = "/delete";
-  static const attend = "/attend";
-  static const present = "/present";
 
   static String get createLectureUrl =>
       (ApiConstants.host + prefix + createOne);
@@ -88,14 +86,6 @@ class LectureEndpoints {
       ('${ApiConstants.host}$prefix$update/$lectureId');
   static String deleteLectureUrl(String lectureId) =>
       ('${ApiConstants.host}$prefix$delete/$lectureId');
-  static String getAttendanceUrl(String lectureId) =>
-      ("${ApiConstants.host}$prefix$attend/$lectureId");
-  static String get markAttendanceUrl => ("${ApiConstants.host}$prefix$attend");
-  static String checkStudPresentUrl(String lectureId, String studentRoll) =>
-      ("${ApiConstants.host}$prefix$present/$lectureId/$studentRoll");
-  static String getStudentCourseAttendanceUrl(
-          String courseId, String studentRoll) =>
-      ("${ApiConstants.host}$prefix$attend/$courseId/$studentRoll");
 }
 
 class RegistrationEndpoints {
@@ -116,4 +106,20 @@ class RegistrationEndpoints {
       ("${ApiConstants.host}$prefix$getAvaRegCourses/$studentRoll");
   static String getRegisteredStudents(String courseId) =>
       ("${ApiConstants.host}$prefix$getCourseStuds/$courseId");
+}
+
+class AttendancesEndpoints {
+  static const prefix = "/attendances";
+  static const students = "/students";
+  static const course = "/course";
+
+  static String get markAttendanceUrl => ("${ApiConstants.host}$prefix/");
+  static String getLectureStudentsUrl(String lectureId) =>
+      ("${ApiConstants.host}$prefix$students/$lectureId");
+  static String checkStudPresentUrl(String lectureId, String studentRoll) =>
+      ("${ApiConstants.host}$prefix$students/$lectureId/$studentRoll");
+  static String getCourseAttendanceUrl(String courseId) =>
+      ("${ApiConstants.host}$prefix$course/$courseId");
+  static String getStudentAttendanceUrl(String courseId, String studentRoll) =>
+      ("${ApiConstants.host}$prefix$course/$courseId/$studentRoll");
 }

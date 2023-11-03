@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:iiitr_connect/api/attendance_api.dart';
 import 'package:iiitr_connect/api/face_encodings_api.dart';
 import 'package:iiitr_connect/api/lecture_api.dart';
 import 'package:iiitr_connect/api/student_api.dart';
@@ -189,7 +190,7 @@ class _MarkAttendanceState extends State<MarkAttendance> {
       });
       return false;
     }
-    response = await LectureApiController()
+    response = await AttendanceApiController()
         .getLectureAttendance(widget.lecture.lecture_id);
     if (!mounted) return false;
     if (response['status'] == 200) {
@@ -369,7 +370,7 @@ class _MarkAttendanceState extends State<MarkAttendance> {
                 ScaffoldMessenger.of(context)
                     .showSnackBar(const SnackBar(content: Text('Saving...')));
               });
-              var response = await LectureApiController().markLectureAttendance(
+              var response = await AttendanceApiController().markLectureAttendance(
                 widget.lecture.lecture_id,
                 presentNotifier.value.map((e) => e.registrationId).toList(),
               );
