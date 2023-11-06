@@ -54,7 +54,7 @@ When you first open the Courses tab, you should see an empty screen. You can reg
 <img src="./images/student_quickstart/10.webp" width="300">  
 The next screen should display a list of available courses, if any:  
 <img src="./images/student_quickstart/11.webp" width="300">     
-`Please select the course with the suffix relevant to your branch (AI or DS).`  
+`Please select the course with the suffix relevant to your branch (CSE or AI&DS).`  
 When you select a course from the list, you will be prompted to confirm the action:  
 <img src="./images/student_quickstart/12.webp" width="300">  
 Confirm by clicking the ☑ button.  
