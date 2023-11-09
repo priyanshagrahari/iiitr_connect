@@ -124,4 +124,17 @@ class AttendanceApiController {
     print(jsonResponse);
     return jsonResponse;
   }
+
+  Future<Map<String, dynamic>> sendAttendanceSheet(String courseId) async {
+    var response = await http.get(
+      Uri.parse(
+          AttendancesEndpoints.sendSheetEmailUrl(courseId)),
+      headers: <String, String>{
+        'token': await UserApiController.findToken,
+      },
+    );
+    var jsonResponse = UserApiController.decode(response);
+    print(jsonResponse);
+    return jsonResponse;
+  }
 }

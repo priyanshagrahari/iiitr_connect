@@ -24,6 +24,9 @@ class _CourseStudentsViewState extends State<CourseStudentsView> {
   late Future studentsFuture;
   List<StudentModel> courseStudents = [];
 
+  String searchQuery = "";
+  bool isSearching = false;
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +36,8 @@ class _CourseStudentsViewState extends State<CourseStudentsView> {
   void initFuture() {
     studentsFuture = StudentApiController().getByCourse(widget.courseId);
     studentsFuture.then((value) {
-      if (mounted && value['status'] == 200) {
+      if (!mounted) return;
+      if (value['status'] == 200) {
         var localList = List<StudentModel>.empty(growable: true);
         for (var registration in value['registrations']) {
           localList.add(StudentModel.fromMap(map: registration['student']));
@@ -53,8 +57,38 @@ class _CourseStudentsViewState extends State<CourseStudentsView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registered Students'),
+        title: (isSearching)
+            ? TextField(
+                autofocus: true,
+                onChanged: (value) => setState(() {
+                  searchQuery = value;
+                }),
+              )
+            : const Text('Registered Students'),
         centerTitle: true,
+        leading: (isSearching)
+            ? IconButton(
+                onPressed: () {
+                  setState(() {
+                    searchQuery = "";
+                    isSearching = false;
+                  });
+                },
+                icon: const Icon(Icons.close),
+              )
+            : null,
+        actions: (isSearching)
+            ? null
+            : [
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isSearching = true;
+                    });
+                  },
+                  icon: const Icon(Icons.search),
+                ),
+              ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -64,25 +98,24 @@ class _CourseStudentsViewState extends State<CourseStudentsView> {
           future: studentsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.data['status'] == 200 && courseStudents.isNotEmpty) {
-                List<StudentCard> cards = courseStudents
-                    .map(
-                      (e) => StudentCard(
-                        student: e,
-                        onDrop: () {
-                          initFuture();
-                        },
-                        courseId: (UserType.userType >= UserType.separator)
-                            ? widget.courseId
-                            : null,
-                        courseName: (UserType.userType >= UserType.separator)
-                            ? widget.courseName
-                            : null,
-                      ),
-                    )
-                    .toList();
-                return ListView(
-                  children: [...cards],
+              List<StudentModel> queryStudents = courseStudents
+                  .where((e) =>
+                      e.name.toLowerCase().contains(searchQuery) ||
+                      e.roll_num.contains(searchQuery))
+                  .toList();
+              if (snapshot.data['status'] == 200 && queryStudents.isNotEmpty) {
+                return ListView.builder(
+                  itemCount: queryStudents.length,
+                  itemBuilder: (context, index) => StudentCard(
+                    student: queryStudents[index],
+                    onDrop: () => initFuture(),
+                    courseId: (UserType.userType >= UserType.separator)
+                        ? widget.courseId
+                        : null,
+                    courseName: (UserType.userType >= UserType.separator)
+                        ? widget.courseName
+                        : null,
+                  ),
                 );
               } else {
                 return ListView(

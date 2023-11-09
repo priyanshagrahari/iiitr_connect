@@ -200,7 +200,7 @@ class _ProfCourseViewState extends State<ProfCourseView> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             ExpandedCardButton(
-                              iconData: Icons.show_chart,
+                              iconData: Icons.table_chart,
                               labelString: "View Attendance",
                               onTap: () {
                                 Navigator.push(
@@ -208,8 +208,7 @@ class _ProfCourseViewState extends State<ProfCourseView> {
                                   MaterialPageRoute(
                                     builder: (context) {
                                       return CourseAttendanceView(
-                                        course: course
-                                      );
+                                          course: course);
                                     },
                                   ),
                                 );
@@ -381,264 +380,261 @@ class _ProfLectureCardState extends State<ProfLectureCard>
     final ScaffoldMessengerState scaffoldMessenger =
         ScaffoldMessenger.of(context);
 
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      alignment: Alignment.topCenter,
-      child: Card(
-        clipBehavior: Clip.hardEdge,
-        child: InkResponse(
-          splashColor: const Color.fromARGB(10, 255, 255, 255),
-          onTap: toggleCollapse,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: FutureBuilder(
-                future: lectureFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      lecture.lecture_id.isNotEmpty) {
-                    if (snapshot.data['status'] == 200) {
-                      return Column(
-                        children: [
-                          ListTile(
-                            // Lecture Date
-                            visualDensity: const VisualDensity(
-                                vertical: VisualDensity.minimumDensity),
-                            leading: const Icon(Icons.calendar_today),
-                            titleTextStyle:
-                                Theme.of(context).textTheme.labelMedium,
-                            subtitleTextStyle:
-                                Theme.of(context).textTheme.bodyMedium,
-                            title: SizeTransition(
+    return Card(
+      clipBehavior: Clip.hardEdge,
+      child: InkResponse(
+        splashColor: const Color.fromARGB(10, 255, 255, 255),
+        onTap: toggleCollapse,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: FutureBuilder(
+              future: lectureFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done &&
+                    lecture.lecture_id.isNotEmpty) {
+                  if (snapshot.data['status'] == 200) {
+                    return Column(
+                      children: [
+                        ListTile(
+                          // Lecture Date
+                          visualDensity: const VisualDensity(
+                              vertical: VisualDensity.minimumDensity),
+                          leading: const Icon(Icons.calendar_today),
+                          titleTextStyle:
+                              Theme.of(context).textTheme.labelMedium,
+                          subtitleTextStyle:
+                              Theme.of(context).textTheme.bodyMedium,
+                          title: SizeTransition(
+                            sizeFactor: _animation,
+                            axis: Axis.vertical,
+                            axisAlignment: -1,
+                            child: const Text('Lecture Date'),
+                          ),
+                          subtitle: Text(
+                              "Lecture on ${formattedDateString(lecture.lecture_date)}"),
+                          trailing: (lecture.atten_marked)
+                              ? const Icon(Icons.checklist)
+                              : null,
+                        ),
+                        ListTile(
+                          // Description
+                          visualDensity: const VisualDensity(
+                              vertical: VisualDensity.minimumDensity),
+                          titleTextStyle:
+                              Theme.of(context).textTheme.labelMedium,
+                          subtitleTextStyle:
+                              Theme.of(context).textTheme.bodyLarge,
+                          title: SizeTransition(
+                            sizeFactor: _animation,
+                            axis: Axis.vertical,
+                            axisAlignment: -1,
+                            child: const Text("Description"),
+                          ),
+                          subtitle: Text(lecture.description),
+                          trailing: SizedBox(
+                            width: 50,
+                            child: SizeTransition(
                               sizeFactor: _animation,
                               axis: Axis.vertical,
-                              axisAlignment: -1,
-                              child: const Text('Lecture Date'),
-                            ),
-                            subtitle: Text(
-                                "Lecture on ${formattedDateString(lecture.lecture_date)}"),
-                          ),
-                          ListTile(
-                            // Description
-                            visualDensity: const VisualDensity(
-                                vertical: VisualDensity.minimumDensity),
-                            titleTextStyle:
-                                Theme.of(context).textTheme.labelMedium,
-                            subtitleTextStyle:
-                                Theme.of(context).textTheme.bodyLarge,
-                            title: SizeTransition(
-                              sizeFactor: _animation,
-                              axis: Axis.vertical,
-                              axisAlignment: -1,
-                              child: const Text("Description"),
-                            ),
-                            subtitle: Text(lecture.description),
-                            trailing: SizedBox(
-                              width: 50,
-                              child: SizeTransition(
-                                sizeFactor: _animation,
-                                axis: Axis.vertical,
-                                axisAlignment: 1,
-                                child: IconButton(
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () =>
-                                      EditCourseCard.showTextEditor(
-                                    context: context,
-                                    fieldName: "Description",
-                                    fieldInitValue: lecture.description,
-                                    fieldMaxLines: 5,
-                                    onSubmit: (value) {
-                                      // SAVE
-                                      lecture.description = value;
-                                      lectureFuture = LectureApiController()
-                                          .updateLecture(
-                                              lecture.lecture_id, lecture);
-                                      lectureFuture.then((value) {
-                                        if (mounted && value['status'] == 200) {
-                                          setState(() {
-                                            lecture = LectureModel.fromMap(map: value);
-                                          });
-                                          widget.onUpdate();
-                                          SchedulerBinding.instance
-                                              .addPostFrameCallback(
-                                                  (timeStamp) {
-                                            scaffoldMessenger
-                                                .hideCurrentSnackBar();
-                                            scaffoldMessenger.showSnackBar(
-                                                SnackBar(
-                                                    content: Text(
-                                                        value['message']
-                                                            as String)));
-                                          });
-                                        }
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(
-                                // MARK ATTENDANCE BUTTON
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.bar_chart),
-                                    SizeTransition(
-                                      sizeFactor: _animation,
-                                      axis: Axis.horizontal,
-                                      axisAlignment: -1,
-                                      child: const Row(
-                                        children: [
-                                          SizedBox(width: 10),
-                                          Text("Attendance"),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return MarkAttendance(
-                                          lecture: lecture,
-                                          dateString: formattedDateString(
-                                              lecture.lecture_date),
-                                              onSaved: widget.onUpdate,
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              SizeTransition(
-                                sizeFactor: ReverseAnimation(_deleteAnimation),
-                                axis: Axis.horizontal,
-                                axisAlignment: -1,
-                                child: TextButton(
-                                  // DELETE BUTTON
-                                  child: (deleting)
-                                      ? SizedBox(
-                                          height: Theme.of(context)
-                                                  .buttonTheme
-                                                  .height -
-                                              15,
-                                          width: Theme.of(context)
-                                                  .buttonTheme
-                                                  .height -
-                                              15,
-                                          child: LoadingIndicator(
-                                            indicatorType: Indicator.lineScale,
-                                            colors: [
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                            ],
-                                            strokeWidth: 4.0,
-                                            pathBackgroundColor: Colors.black45,
-                                          ),
-                                        )
-                                      : Row(
-                                          children: [
-                                            const Icon(Icons.delete_forever),
-                                            SizeTransition(
-                                              sizeFactor: _animation,
-                                              axis: Axis.horizontal,
-                                              axisAlignment: -1,
-                                              child: const Row(
-                                                children: [
-                                                  SizedBox(width: 10),
-                                                  Text("Delete"),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                  onPressed: () {
-                                    _deleteController.forward();
+                              axisAlignment: 1,
+                              child: IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => EditCourseCard.showTextEditor(
+                                  context: context,
+                                  fieldName: "Description",
+                                  fieldInitValue: lecture.description,
+                                  fieldMaxLines: 5,
+                                  onSubmit: (value) {
+                                    // SAVE
+                                    lecture.description = value;
+                                    lectureFuture = LectureApiController()
+                                        .updateLecture(
+                                            lecture.lecture_id, lecture);
+                                    lectureFuture.then((value) {
+                                      if (mounted && value['status'] == 200) {
+                                        setState(() {
+                                          lecture =
+                                              LectureModel.fromMap(map: value);
+                                        });
+                                        widget.onUpdate();
+                                        SchedulerBinding.instance
+                                            .addPostFrameCallback((timeStamp) {
+                                          scaffoldMessenger
+                                              .hideCurrentSnackBar();
+                                          scaffoldMessenger.showSnackBar(
+                                              SnackBar(
+                                                  content: Text(value['message']
+                                                      as String)));
+                                        });
+                                      }
+                                    });
                                   },
                                 ),
                               ),
-                              SizeTransition(
-                                sizeFactor: _deleteAnimation,
-                                axis: Axis.horizontal,
-                                axisAlignment: 1,
-                                child: Row(
-                                  children: [
-                                    const Text('Are you sure? '),
-                                    IconButton(
-                                      // CONFIRM DELETE
-                                      onPressed: () async {
-                                        _deleteController.reverse();
-                                        setState(() {
-                                          deleting = true;
-                                        });
-                                        var response =
-                                            await LectureApiController()
-                                                .deleteLecture(
-                                                    lecture.lecture_id);
-                                        if (response['message'] != null) {
-                                          SchedulerBinding.instance
-                                              .addPostFrameCallback(
-                                            (_) {
-                                              scaffoldMessenger
-                                                  .hideCurrentSnackBar();
-                                              scaffoldMessenger.showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                      response['message']
-                                                          as String),
-                                                ),
-                                              );
-                                            },
-                                          );
-                                        }
-                                        if (mounted &&
-                                            response['status'] == 200) {
-                                          widget.onDelete();
-                                        } else {
-                                          setState(() {
-                                            deleting = false;
-                                          });
-                                        }
-                                      },
-                                      color: Colors.red,
-                                      icon: const Icon(Icons.check),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        _deleteController.reverse();
-                                      },
-                                      icon: const Icon(Icons.close),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          )
-                        ],
-                      );
-                    } else {
-                      return const SizedBox(
-                        height: 50,
-                        child: Center(
-                          child: Text(
-                              'Not found :( Please contact an administrator about this issue'),
+                            ),
+                          ),
                         ),
-                      );
-                    }
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              // MARK ATTENDANCE BUTTON
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.bar_chart),
+                                  SizeTransition(
+                                    sizeFactor: _animation,
+                                    axis: Axis.horizontal,
+                                    axisAlignment: -1,
+                                    child: const Row(
+                                      children: [
+                                        SizedBox(width: 10),
+                                        Text("Attendance"),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return MarkAttendance(
+                                        lecture: lecture,
+                                        dateString: formattedDateString(
+                                            lecture.lecture_date),
+                                        onSaved: widget.onUpdate,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            SizeTransition(
+                              sizeFactor: ReverseAnimation(_deleteAnimation),
+                              axis: Axis.horizontal,
+                              axisAlignment: -1,
+                              child: TextButton(
+                                // DELETE BUTTON
+                                child: (deleting)
+                                    ? SizedBox(
+                                        height: Theme.of(context)
+                                                .buttonTheme
+                                                .height -
+                                            15,
+                                        width: Theme.of(context)
+                                                .buttonTheme
+                                                .height -
+                                            15,
+                                        child: LoadingIndicator(
+                                          indicatorType: Indicator.lineScale,
+                                          colors: [
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                          ],
+                                          strokeWidth: 4.0,
+                                          pathBackgroundColor: Colors.black45,
+                                        ),
+                                      )
+                                    : Row(
+                                        children: [
+                                          const Icon(Icons.delete_forever),
+                                          SizeTransition(
+                                            sizeFactor: _animation,
+                                            axis: Axis.horizontal,
+                                            axisAlignment: -1,
+                                            child: const Row(
+                                              children: [
+                                                SizedBox(width: 10),
+                                                Text("Delete"),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                onPressed: () {
+                                  _deleteController.forward();
+                                },
+                              ),
+                            ),
+                            SizeTransition(
+                              sizeFactor: _deleteAnimation,
+                              axis: Axis.horizontal,
+                              axisAlignment: 1,
+                              child: Row(
+                                children: [
+                                  const Text('Are you sure? '),
+                                  IconButton(
+                                    // CONFIRM DELETE
+                                    onPressed: () async {
+                                      _deleteController.reverse();
+                                      setState(() {
+                                        deleting = true;
+                                      });
+                                      var response =
+                                          await LectureApiController()
+                                              .deleteLecture(
+                                                  lecture.lecture_id);
+                                      if (response['message'] != null) {
+                                        SchedulerBinding.instance
+                                            .addPostFrameCallback(
+                                          (_) {
+                                            scaffoldMessenger
+                                                .hideCurrentSnackBar();
+                                            scaffoldMessenger.showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    response['message']
+                                                        as String),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                      if (mounted &&
+                                          response['status'] == 200) {
+                                        widget.onDelete();
+                                      } else {
+                                        setState(() {
+                                          deleting = false;
+                                        });
+                                      }
+                                    },
+                                    color: Colors.red,
+                                    icon: const Icon(Icons.check),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      _deleteController.reverse();
+                                    },
+                                    icon: const Icon(Icons.close),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        )
+                      ],
+                    );
+                  } else {
+                    return const SizedBox(
+                      height: 50,
+                      child: Center(
+                        child: Text(
+                            'Not found :( Please contact an administrator about this issue'),
+                      ),
+                    );
                   }
-                  return const SizedBox(
-                    height: 50,
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }),
-          ),
+                }
+                return const SizedBox(
+                  height: 50,
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }),
         ),
       ),
     );
@@ -719,53 +715,60 @@ class EditCourseCard extends StatefulWidget {
   }) async {
     await showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (context) {
         var fieldKey = GlobalKey<FormFieldState>();
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.6,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Text('Edit $fieldName:'),
-                TextFormField(
-                  key: fieldKey,
-                  minLines: 1,
-                  maxLines: fieldMaxLines,
-                  initialValue: fieldInitValue,
-                  autofocus: true,
-                  onEditingComplete: () {
-                    fieldKey.currentState!.save();
-                  },
-                  onSaved: (value) {
-                    if (fieldKey.currentState!.validate()) {
-                      onSubmit(value.toString().trim());
-                      Navigator.pop(context);
-                    }
-                  },
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      return null;
-                    } else {
-                      return "Please enter a ${fieldName.toLowerCase()}";
-                    }
-                  },
+        return Wrap(
+          children: <Widget>[
+            Container(
+              child: Padding(
+                padding: MediaQuery.of(context).viewInsets,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Text('Edit $fieldName:'),
+                      TextFormField(
+                        key: fieldKey,
+                        minLines: 1,
+                        maxLines: fieldMaxLines,
+                        initialValue: fieldInitValue,
+                        autofocus: true,
+                        onEditingComplete: () {
+                          fieldKey.currentState!.save();
+                        },
+                        onSaved: (value) {
+                          if (fieldKey.currentState!.validate()) {
+                            onSubmit(value.toString().trim());
+                            Navigator.pop(context);
+                          }
+                        },
+                        validator: (value) {
+                          if (value != null && value.isNotEmpty) {
+                            return null;
+                          } else {
+                            return "Please enter a ${fieldName.toLowerCase()}";
+                          }
+                        },
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          fieldKey.currentState!.save();
+                        },
+                        child: const Text('Submit'),
+                      ),
+                    ],
+                  ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    fieldKey.currentState!.save();
-                  },
-                  child: const Text('Submit'),
-                ),
-              ],
-            ),
-          ),
+              ),
+            )
+          ],
         );
       },
     );
   }
 
-  static void showCalendar({
+  static Future<DateTime?> showCalendar({
     required final BuildContext context,
     required String calendarInitValue,
     required void Function(String value) onSubmit,
@@ -799,6 +802,7 @@ class EditCourseCard extends StatefulWidget {
       var dateString = picked.toString().split(' ')[0];
       onSubmit(dateString);
     }
+    return picked;
   }
 }
 

@@ -19,7 +19,8 @@ class AllLectures extends StatefulWidget {
 
 class _AllLecturesState extends State<AllLectures> {
   late Future allLecturesFuture;
-  late List<LectureModel> allLectureModels = [];
+  List<LectureModel> allLectureModels = [];
+  List<LectureModel> queryLectureModels = [];
 
   @override
   void initState() {
@@ -76,7 +77,8 @@ class _AllLecturesState extends State<AllLectures> {
         future: allLecturesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.data['status'] == 200 && allLectureModels.isNotEmpty) {
+            if (snapshot.data['status'] == 200 &&
+                allLectureModels.isNotEmpty) {
               return RefreshIndicator(
                 onRefresh: () async {
                   initFuture();

@@ -112,6 +112,7 @@ class AttendancesEndpoints {
   static const prefix = "/attendances";
   static const students = "/students";
   static const course = "/course";
+  static const sheet = "/sheet";
 
   static String get markAttendanceUrl => ("${ApiConstants.host}$prefix/");
   static String getLectureStudentsUrl(String lectureId) =>
@@ -122,4 +123,6 @@ class AttendancesEndpoints {
       ("${ApiConstants.host}$prefix$course/$courseId");
   static String getStudentAttendanceUrl(String courseId, String studentRoll) =>
       ("${ApiConstants.host}$prefix$course/$courseId/$studentRoll");
+  static String sendSheetEmailUrl(String courseId) =>
+      ("${ApiConstants.host}$prefix$sheet/$courseId");
 }
